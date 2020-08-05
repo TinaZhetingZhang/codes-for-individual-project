@@ -30,7 +30,6 @@ kruskal.test(_DATA_ ~ _TYPE_DATA_)      #Kruskal-Wallis Test (variance, non-para
 
 library(scatterplot3d)
 library(ggplot2)
-library(mixOmics)
 library(rgl)
 library(magick)
 library(rmarkdown)
@@ -213,6 +212,7 @@ dev.off()
 
 
 ##Missing data
+
 library(missMDA)
 
 data <- read.csv("_DATA_.csv")
