@@ -29,49 +29,55 @@ kruskal.test(_DATA_ ~ _TYPE_DATA_)      #Kruskal-Wallis Test (variance, non-para
 ##PCA
 
 library(scatterplot3d)
+library(ggplot2)
+library(mixOmics)
+library(rgl)
+library(magick)
+library(rmarkdown)
+library(tidyr)
 
 data.class <- rownames(_DATA_)
-data.pca <- prcomp(_DATA_, scale. = TRUE)     #PCA
-write.table(data.pca$rotation,file="_FILE_NAME_.csv",quote=F,sep=",")     #
-write.table(predict(data.pca),file="_FILE_NAME_.csv",quote=F,sep=",")     #
+data.pca <- prcomp(_DATA_, scale. = TRUE)     #do PCA
+write.table(data.pca$rotation,file="_FILE_NAME_.csv",quote=F,sep=",")     #output the PCA results
+write.table(predict(data.pca),file="_FILE_NAME_.csv",quote=F,sep=",")     #output the PCA results
 data.pca.sum <- summary(data.pca)
-write.table(data.pca.sum$importance,file="_FILE_NAME_.csv",quote=F,sep=",")     #
+write.table(data.pca.sum$importance,file="_FILE_NAME_.csv",quote=F,sep=",")     #output the PC informations
 
 colortable<-c("#1f78b4","#e31a1c","#33a02c","#ff7f00","#fdbf6f",
               "#cab2d6","#6a3d9a","#a6cee3","#b2df8a","#fb9a99")
 {
-  PC1_text <- "PC1 (_DATA_%)"     #
-  PC2_text <- "PC2 (_DATA_%)"     #
-  PC3_text <- "PC3 (_DATA_%)"     #
-  title_name <- "_TITLE_"     #
+  PC1_text <- "PC1 (_DATA_%)"     #write the percentage of PC
+  PC2_text <- "PC2 (_DATA_%)"
+  PC3_text <- "PC3 (_DATA_%)"
+  title_name <- "_TITLE_"     #write the title of figure
 }
 
 {
-  file_name <- "_FILE_NAME_"     #
-  type_number <- _NUMBER_     #
+  file_name <- "_FILE_NAME_"     #write the file name
+  type_number <- _NUMBER_     #write the number of types(i.e. block has two types, variety has 10 types.)
 }
 
 {
-  data_pc<-read.csv("_FILE_NAME_.csv", header=T)     #
+  data_pc<-read.csv("_FILE_NAME_.csv", header=T)     #input the PCA results
   file1 <- paste(file_name,"_without_lable.pdf",sep = "",collapse = NULL)
   file2 <- paste(file_name,"_labled.pdf",sep = "",collapse = NULL)
-  colors <- colortable[1:type_number]     #
-  colors <- colors[as.numeric(data_pc[,data_col_number])]     #
+  colors <- colortable[1:type_number]
+  colors <- colors[as.numeric(data_pc[,data_col_number])]
 }
 
 {
-  pdf(file=file1, width=12,height = 11)     #
-  s3d<-scatterplot3d(data_pc[,2:4],color = colors, angle = 50 ,pch = 16,     #
+  pdf(file=file1, width=12,height = 11)     #draw 3D PCA figure without lable 
+  s3d<-scatterplot3d(data_pc[,2:4],color = colors, angle = 50 ,pch = 16,
                      xlab=PC1_text, ylab=PC2_text, 
                      zlab=PC3_text, main = title_name,
                      cex.axis = 1.6,cex.lab= 1.6,cex.symbols=1.7 ,cex.main=2,
                      font.lab = 1, font.axis = 1, font.main = 1)
-  legend("topleft",legend = levels(data_pc[,data_col_number]),pch =16,     #
+  legend("topleft",legend = levels(data_pc[,data_col_number]),pch =16,     #add legend
          col = colortable[1:type_number], xpd = TRUE, horiz = FALSE,
          inset = 0,x.intersp=1,bty = "n",cex=1.8,pt.cex=1.8)
   dev.off()
   
-  pdf(file=file2, width=12,height = 11)     #
+  pdf(file=file2, width=12,height = 11)     #draw 3D PCA figure with lables
   s3d<-scatterplot3d(data_pc[,2:4],color = colors, angle = 50 ,pch = 16,
                      xlab=PC1_text, ylab=PC2_text, 
                      zlab=PC3_text, main = title_name,
@@ -85,18 +91,18 @@ colortable<-c("#1f78b4","#e31a1c","#33a02c","#ff7f00","#fdbf6f",
 } 
 
 {
-data_col_number <-  _NUMBER_
-type_number <-  _NUMBER_
+  type_data <-  <-read.csv("_FILE_NAME_.csv", header=T)      #input the data which contains the information of type for each sample which you want to color with
+  type_number <-  _NUMBER_      #input the number of types(i.e. block has two types, variety has 10 types.)
 
-colors <- colortable[1:type_number]
-colors <- colors[as.numeric(data[,data_col_number])]
+  colors <- colortable[1:type_number]
+  colors <- colors[as.numeric(data[,type_data])]
 
-plot3d(x=data[,2],y=data[,3],z=data[,4],type='p',box=F, col= colors,
+  plot3d(x=data[,2],y=data[,3],z=data[,4],type='p',box=F, col= colors,      #make the web for 3D PCA which is dynamic
        xlab = "PC1_text", ylab = "PC2_text", zlab = "PC3_text",size = 5,lwd = 2,ambient  = "gray")
-legend3d("topleft",legend = levels(data[,data_col_number]),pch =16,
+  legend3d("topleft",legend = levels(type_data),pch =16,
        col = colortable[1:type_number], xpd = TRUE, horiz = FALSE,
        inset = 0,x.intersp=1 ,bty = "n", cex=1,pt.cex=1)
-filename <- writeWebGL(filename = "_FILE_NAME_.html",width = 500, reuse = TRUE)
+  filename <- writeWebGL(filename = "_FILE_NAME_.html",width = 500, reuse = TRUE)
 }
 
 
@@ -110,22 +116,24 @@ filename <- writeWebGL(filename = "_FILE_NAME_.html",width = 500, reuse = TRUE)
 
 ##PLS-DA
 
+library(ggplot2)
 library(mixOmics)
 library(rgl)
 library(magick)
 library(rmarkdown)
 library(tidyr)
+
 all_data <- read.csv("_FILE_NAME_.csv",header = T)
-data <- all_data[,9:22]
-type <- all_data[,1:8]
+data <- all_data[,9:22]     #the number of column is related to data
+type <- all_data[,1:8]      #the number of column is related to data
 {
-  col_number = _NUMBER_
-  file_name = "_FILE_NAME_"
+  col_number = _NUMBER_     #the number of column in type data which you want to lable
+  file_name = "_FILE_NAME_"     #the output file name
 }
 {
-  file <- paste("PLS-DA_",file_name,"_new.html",sep = "",collapse = NULL)
+  file <- paste("PLS-DA_",file_name,".html",sep = "",collapse = NULL)
   plsda_result <-plsda(data,type[,col_number], ncomp = 3)
-  plotIndiv(plsda_result, ind.names = F, comp = c(1, 2, 3), legend = TRUE,
+  plotIndiv(plsda_result, ind.names = F, comp = c(1, 2, 3), legend = TRUE,      #make the web for 3D PLS-DA which is dynamic
             ellipse = F, cex = 0.3,title = "PLS-DA",
             legend.title="", style = '3d',size.legend =50)
   filename <- writeWebGL(filename = file, width = 500, reuse = TRUE)
@@ -134,10 +142,10 @@ type <- all_data[,1:8]
   com <- as.data.frame(plsda_result$loadings$X)
   a <- row.names(com)
   com[,4] <- a
-  names(com)<-c("Component 1 ( _NUMBER_%)","Component 2 ( _NUMBER_%)","Component 3 ( _NUMBER_%)","antibody")
+  names(com)<-c("Component 1 ( _NUMBER_%)","Component 2 ( _NUMBER_%)","Component 3 ( _NUMBER_%)","antibody")      #input the percentage of each component
   loa <- gather(com,"com","num",1:3)
   loa[,3] <- signif(loa[,3], 2)
-  pdf(file="PLS-DA Loading.pdf", width=25,height = 11)
+  pdf(file="PLS-DA Loading.pdf", width=25,height = 11)     #make the loading plot for PLS-DA
   ggplot(loa,aes(x=loa[,1],y=loa[,3],gather=loa[,1],fill=loa[,2]))+theme_bw()+
     geom_bar(position=position_dodge(),stat="identity")+facet_grid(.~loa[,2])+
     scale_fill_manual(values=c('#66c2a5','#fc8d62','#8da0cb'))+
@@ -160,7 +168,7 @@ type <- all_data[,1:8]
 
 
 
-##小提琴图
+##Violine plot
 
 library(ggplot2)
 
@@ -204,7 +212,7 @@ dev.off()
 
 
 
-##缺失数据
+##Missing data
 library(missMDA)
 
 data <- read.csv("_DATA_.csv")
