@@ -1,0 +1,220 @@
+##All the codes are for R.
+##Words with "underline capital underline" mean _INPUT_.
+
+
+
+##Significant Difference Test
+
+shapiro.test(_DATA_)      #Shapiro-Wilk test (normal distribution)
+
+var.test(_DATA1_, _DATA2_)      #F-test (variance, parametric)
+fligner.test(_DATA1_, _DATA2_)      #Fligner-Killeen test (variance, non-parametric)
+t.test(_DATA1_, _DATA2_, alternative = "two.sided", paired = TRUE)      #T-test (mean, parametric)
+wilcox.test(_DATA1_, _DATA2_, alternative = c ("two.sided"), paired = T)      #Wilcoxon Rank Sum and Signed Rank Tests (mean, non-parametric)
+
+bartlett.test(_DATA_ ~ _TYPE_DATA_)      #Bartlett's test (variance, parametric)
+oneway.test(_DATA_ ~ _TYPE_DATA_, var.equal = T)      #one-way analysis of variance (mean, parametric)
+oneway.test(_DATA_ ~ _TYPE_DATA_, var.equal = F)      #one-way analysis of variance (mean, non-parametric)
+kruskal.test(_DATA_ ~ _TYPE_DATA_)      #Kruskal-Wallis Test (variance, non-parametric)
+
+
+
+
+
+
+
+
+
+
+##PCA
+
+library(scatterplot3d)
+
+data.class <- rownames(_DATA_)
+data.pca <- prcomp(_DATA_, scale. = TRUE)     #PCA
+write.table(data.pca$rotation,file="_FILE_NAME_.csv",quote=F,sep=",")     #
+write.table(predict(data.pca),file="_FILE_NAME_.csv",quote=F,sep=",")     #
+data.pca.sum <- summary(data.pca)
+write.table(data.pca.sum$importance,file="_FILE_NAME_.csv",quote=F,sep=",")     #
+
+colortable<-c("#1f78b4","#e31a1c","#33a02c","#ff7f00","#fdbf6f",
+              "#cab2d6","#6a3d9a","#a6cee3","#b2df8a","#fb9a99")
+{
+  PC1_text <- "PC1 (_DATA_%)"     #
+  PC2_text <- "PC2 (_DATA_%)"     #
+  PC3_text <- "PC3 (_DATA_%)"     #
+  title_name <- "_TITLE_"     #
+}
+
+{
+  file_name <- "_FILE_NAME_"     #
+  type_number <- _NUMBER_     #
+}
+
+{
+  data_pc<-read.csv("_FILE_NAME_.csv", header=T)     #
+  file1 <- paste(file_name,"_without_lable.pdf",sep = "",collapse = NULL)
+  file2 <- paste(file_name,"_labled.pdf",sep = "",collapse = NULL)
+  colors <- colortable[1:type_number]     #
+  colors <- colors[as.numeric(data_pc[,data_col_number])]     #
+}
+
+{
+  pdf(file=file1, width=12,height = 11)     #
+  s3d<-scatterplot3d(data_pc[,2:4],color = colors, angle = 50 ,pch = 16,     #
+                     xlab=PC1_text, ylab=PC2_text, 
+                     zlab=PC3_text, main = title_name,
+                     cex.axis = 1.6,cex.lab= 1.6,cex.symbols=1.7 ,cex.main=2,
+                     font.lab = 1, font.axis = 1, font.main = 1)
+  legend("topleft",legend = levels(data_pc[,data_col_number]),pch =16,     #
+         col = colortable[1:type_number], xpd = TRUE, horiz = FALSE,
+         inset = 0,x.intersp=1,bty = "n",cex=1.8,pt.cex=1.8)
+  dev.off()
+  
+  pdf(file=file2, width=12,height = 11)     #
+  s3d<-scatterplot3d(data_pc[,2:4],color = colors, angle = 50 ,pch = 16,
+                     xlab=PC1_text, ylab=PC2_text, 
+                     zlab=PC3_text, main = title_name,
+                     cex.axis = 1.6,cex.lab= 1.6,cex.symbols=1.7,cex.main=2,
+                     font.lab = 1, font.axis = 1, font.main = 1)
+  legend("topleft",legend = levels(data_pc[,data_col_number]),pch =16,
+         col = colortable[1:type_number], xpd = TRUE, horiz = FALSE,
+         inset = 0,x.intersp=1,bty = "n",cex=1.8,pt.cex=1.8)
+  text(s3d$xyz.convert(data_pc[,2:4]),labels = data_pc[,1],cex=0.8,adj = 0)
+  dev.off()
+} 
+
+{
+data_col_number <-  _NUMBER_
+type_number <-  _NUMBER_
+
+colors <- colortable[1:type_number]
+colors <- colors[as.numeric(data[,data_col_number])]
+
+plot3d(x=data[,2],y=data[,3],z=data[,4],type='p',box=F, col= colors,
+       xlab = "PC1_text", ylab = "PC2_text", zlab = "PC3_text",size = 5,lwd = 2,ambient  = "gray")
+legend3d("topleft",legend = levels(data[,data_col_number]),pch =16,
+       col = colortable[1:type_number], xpd = TRUE, horiz = FALSE,
+       inset = 0,x.intersp=1 ,bty = "n", cex=1,pt.cex=1)
+filename <- writeWebGL(filename = "_FILE_NAME_.html",width = 500, reuse = TRUE)
+}
+
+
+
+
+
+
+
+
+
+
+##PLS-DA
+
+library(mixOmics)
+library(rgl)
+library(magick)
+library(rmarkdown)
+library(tidyr)
+all_data <- read.csv("_FILE_NAME_.csv",header = T)
+data <- all_data[,9:22]
+type <- all_data[,1:8]
+{
+  col_number = _NUMBER_
+  file_name = "_FILE_NAME_"
+}
+{
+  file <- paste("PLS-DA_",file_name,"_new.html",sep = "",collapse = NULL)
+  plsda_result <-plsda(data,type[,col_number], ncomp = 3)
+  plotIndiv(plsda_result, ind.names = F, comp = c(1, 2, 3), legend = TRUE,
+            ellipse = F, cex = 0.3,title = "PLS-DA",
+            legend.title="", style = '3d',size.legend =50)
+  filename <- writeWebGL(filename = file, width = 500, reuse = TRUE)
+}
+{
+  com <- as.data.frame(plsda_result$loadings$X)
+  a <- row.names(com)
+  com[,4] <- a
+  names(com)<-c("Component 1 ( _NUMBER_%)","Component 2 ( _NUMBER_%)","Component 3 ( _NUMBER_%)","antibody")
+  loa <- gather(com,"com","num",1:3)
+  loa[,3] <- signif(loa[,3], 2)
+  pdf(file="PLS-DA Loading.pdf", width=25,height = 11)
+  ggplot(loa,aes(x=loa[,1],y=loa[,3],gather=loa[,1],fill=loa[,2]))+theme_bw()+
+    geom_bar(position=position_dodge(),stat="identity")+facet_grid(.~loa[,2])+
+    scale_fill_manual(values=c('#66c2a5','#fc8d62','#8da0cb'))+
+    ylab("Scores of antibodies in each components")+xlab("Antibodies")+
+    ggtitle("Antibodies Loading for Components (PLS-DA labed with level of resistance)")+coord_flip()+
+    theme(legend.position="none",title=element_text(size=39),
+          axis.title.x=element_text(size=40),axis.title.y=element_text(size=40),
+          axis.text.x=element_text(size=30),axis.text.y=element_text(size=31,face = "bold"),
+          strip.text.x=element_text(size=38))+geom_text(aes(label=loa[,3]),vjust=0.5,hjust=1,
+                                color="black",position=position_stack(),size=12)
+  dev.off()
+}
+
+
+
+
+
+
+
+
+
+
+##小提琴图
+
+library(ggplot2)
+
+color_table <- c("#2166ac","#67a9cf","#d1e5f0")
+
+pdf(file=" _FILE_NAME_.pdf",width=8,height = 20)
+ggplot (_DATA_, aes( x= _DATA_, y= _DATA_, fill= _DATA_))+geom_violin()+
+      theme_bw()+xlab("Abundance")+ylab("Level of resistance to P. infestans")+ggtitle("_NAME_OF_TITLE_")+
+      scale_fill_manual(values=color_table, labels=c("Resistant","Intermediate","Susceptible"))+
+      theme(legend.title=element_blank(),title=element_text(size=28, face="bold"),
+            legend.text = element_text(size = 19, face="bold"),
+            legend.position=c(1, 1),legend.justification=c(3.1,1.008),
+            axis.title.x=element_text(size=25, face="bold"),
+            axis.title.y=element_text(size=25, face="bold"),
+            axis.text.y=element_text(size=20, face="bold"),
+            axis.text.x=element_blank(),axis.ticks.x = element_blank(),
+            strip.text.x=element_text(size=25),strip.text.y=element_text(size=22))+
+      facet_grid(Antibody~SYSTEM)+ coord_flip()
+dev.off()
+
+  pdf(file="_FILE_NAME_.pdf",width=4.1,height = 11)
+  ggplot(_DATA_, aes(x=_DATA_, y=_DATA_, fill=_DATA_))+geom_violin()+
+    theme_bw()+xlab("Abundance")+ylab("Farming System")+ggtitle("_TITLE_")+
+    scale_fill_manual(values=color_table,labels=c("Conventional","Organic"))+
+    theme(legend.title=element_blank(),title=element_text(size=28, face="bold"),
+          legend.text = element_text(size = 20, face="bold"),
+          legend.position=c(1, 1),legend.justification=c(1.52,1.01),
+          axis.title.x=element_text(size=25, face="bold"),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),axis.text.x=element_blank(),axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank(),strip.text.y=element_text(size=28))+
+    facet_grid(Antibody~.)+coord_flip()
+  dev.off()
+
+
+
+
+
+
+
+
+
+
+##缺失数据
+library(missMDA)
+
+data <- read.csv("_DATA_.csv")
+data1 <- imputePCA(data, ncp=3)
+data2 <- data1$completeObs
+data2 <- as.matrix.data.frame(data2)
+
+data.class <- rownames(data2)
+data.pca <- prcomp(data2, scale. = TRUE)
+write.table(data.pca$rotation,file="data_PC.csv",quote=F,sep=",")
+write.table(predict(data.pca),file="data_newTab.csv",quote=F,sep=",")
+data.pca.sum=summary(data.pca)
+write.table(data.pca.sum$importance,file="data_importance.csv",quote=F,sep=",") 
